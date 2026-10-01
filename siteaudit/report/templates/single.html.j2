@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ meta.niche }} — {{ meta.place }} · relatório completo</title>
+<style>
+  :root{--ink:#0f172a;--muted:#5b6478;--line:rgba(15,23,42,.09);--bg:#f7f9fc;--accent:#2563eb;
+        --critico:#dc2626;--alto:#ea580c;--medio:#ca8a04;--baixo:#0d9488;--ok:#16a34a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:15px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+  header.top{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:34px 0 26px}
+  h1{margin:0 0 8px;font-size:clamp(22px,3.2vw,32px);letter-spacing:-.025em}
+  .meta{opacity:.82;font-size:13.5px}
+  .kpis{display:grid;gap:12px;margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .kpi{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:14px}
+  .kpi b{display:block;font-size:24px;letter-spacing:-.02em}
+  .kpi span{font-size:12px;opacity:.82}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 14px}
+  input[type=search]{flex:1;min-width:210px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);
+                     font-size:14.5px;background:#fff;font-family:inherit}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:13.5px;
+        cursor:pointer;font-weight:600;color:var(--muted)}
+  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .score{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;font-weight:800;color:#fff;font-size:14px}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+  .badge.critico{background:#fee2e2;color:#991b1b}
+  .badge.alto{background:#ffedd5;color:#9a3412}
+  .badge.medio{background:#fef9c3;color:#854d0e}
+  .badge.ok{background:#dcfce7;color:#166534}
+  .badge.neutro{background:#e2e8f0;color:#334155}
+  .small{font-size:12.5px;color:var(--muted)}
+  .empty{padding:36px;text-align:center;color:var(--muted);display:none}
+  footer{padding:26px 0 46px;color:var(--muted);font-size:13px;text-align:center}
+  .hint{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;
+        color:var(--muted);margin-bottom:16px}
+  .hint b{color:var(--ink)}
+{{ extra_css }}
+</style>
+<style>{{ report_css }}</style>
+<style>{{ demo_css }}</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>{{ meta.niche }} — {{ meta.place }}</h1>
+    <div class="meta">Relatório completo gerado em {{ meta.generated_at }} · {{ meta.leads_total }} empresas · provedores: {{ meta.providers }}</div>
+    <div class="kpis">
+      <div class="kpi"><b>{{ meta.leads_total }}</b><span>empresas</span></div>
+      <div class="kpi"><b>{{ meta.with_site }}</b><span>com site próprio</span></div>
+      <div class="kpi"><b>{{ meta.no_site }}</b><span>site próprio não localizado</span></div>
+      <div class="kpi"><b>{{ meta.avg_score }}</b><span>nota média</span></div>
+      <div class="kpi"><b>{{ meta.hot_leads }}</b><span>oportunidade alta+</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hint" style="margin-top:20px">
+    <b>Como usar:</b> clique no nome da empresa para abrir o diagnóstico completo do site e,
+    em <b>Ver demo</b>, a proposta de site novo pronta para mostrar ao cliente.
+    Use os filtros para priorizar quem abordar primeiro.
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Buscar empresa, cidade ou domínio...">
+    <button class="chip active" data-filter="all">Todos</button>
+    <button class="chip" data-filter="nosite">Site não localizado</button>
+    <button class="chip" data-filter="hot">Oportunidade alta+</button>
+    <button class="chip" data-filter="worst">Piores notas</button>
+    <button class="chip" data-filter="nowhats">Sem WhatsApp</button>
+    <button class="chip" data-filter="mobile">Problemas no mobile</button>
+  </div>
+
+  <div id="lista">
+  {% for item in items %}
+    {% set r = item.row %}
+    <article class="sa-item" data-name="{{ r.name|lower }}" data-city="{{ r.city|lower }}"
+             data-site="{{ r.site|lower }}" data-nosite="{{ 1 if not r.has_site else 0 }}"
+             data-score="{{ r.score if r.score is not none else -1 }}" data-hot="{{ 1 if r.hot else 0 }}"
+             data-mobile="{{ 1 if r.mobile_issue else 0 }}" data-nowhats="{{ 1 if r.nowhats else 0 }}">
+      <div class="sa-head" onclick="saToggle('{{ item.slug }}-rep')">
+        <div>
+          <div class="sa-title">{{ r.name }}</div>
+          <div class="sa-sub">{{ r.city }} · {{ r.category }} · {{ r.phone or 'sem telefone' }}</div>
+          <div class="sa-sub">{% if r.site %}{{ r.site }}{% else %}site próprio não localizado nas fontes consultadas{% endif %}</div>
+        </div>
+        <div class="sa-actions">
+          {% if r.score is not none %}<span class="score" style="background:{{ r.score_color }}">{{ r.score }}</span>{% endif %}
+          <span class="badge {{ r.opp_class }}">{{ r.opportunity }}</span>
+          {% if r.counts %}<span class="badge critico">{{ r.counts.critico }} crítico</span> <span class="badge alto">{{ r.counts.alto }} alto</span>{% endif %}
+          {% if item.has_report %}<button class="sa-btn" onclick="event.stopPropagation();saToggle('{{ item.slug }}-rep')">Diagnóstico</button>{% endif %}
+          {% if item.has_demo %}<button class="sa-btn" onclick="event.stopPropagation();saToggle('{{ item.slug }}-demo')">Ver demo</button>{% endif %}
+        </div>
+      </div>
+      {% if item.has_report %}
+      <div class="sa-panel sa-rep" id="{{ item.slug }}-rep">{{ item.report_body|safe }}</div>
+      {% endif %}
+      {% if item.has_demo %}
+      <div class="sa-panel sa-demo" id="{{ item.slug }}-demo">
+        {{ item.demo_body|safe }}
+        <div class="sa-note">Proposta de redesign gerada automaticamente a partir do site atual desta empresa.</div>
+      </div>
+      {% endif %}
+    </article>
+  {% endfor %}
+  </div>
+  <div class="empty" id="empty">Nenhum lead corresponde ao filtro.</div>
+</div>
+
+<footer>siteaudit v{{ meta.version }} · arquivo único, sem dependências externas · dados coletados de fontes públicas</footer>
+
+<script>
+var saOpen = {};
+function saToggle(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.sa-panel.open').forEach(function(p){ p.classList.remove('open'); });
+  document.querySelectorAll('.sa-btn.on').forEach(function(b){ b.classList.remove('on'); });
+  if(!isOpen){
+    el.classList.add('open');
+    saOpen[id] = true;
+    var btn = el.parentNode.querySelector('[onclick*="' + id + '"].sa-btn');
+    if(btn) btn.classList.add('on');
+    setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 60);
+  }
+}
+
+var q = document.getElementById('q');
+var chips = document.querySelectorAll('.chip');
+var items = Array.from(document.querySelectorAll('.sa-item'));
+var filter = 'all';
+
+function applyFilter(){
+  var term = (q.value || '').toLowerCase();
+  var visible = 0;
+  items.forEach(function(it){
+    var ok = true;
+    if (filter === 'nosite') ok = it.dataset.nosite === '1';
+    else if (filter === 'hot') ok = it.dataset.hot === '1';
+    else if (filter === 'worst') ok = it.dataset.score !== '-1' && Number(it.dataset.score) < 60;
+    else if (filter === 'nowhats') ok = it.dataset.nowhats === '1';
+    else if (filter === 'mobile') ok = it.dataset.mobile === '1';
+    if (ok && term) ok = (it.dataset.name + ' ' + it.dataset.city + ' ' + it.dataset.site).indexOf(term) !== -1;
+    it.style.display = ok ? '' : 'none';
+    if (ok) visible++;
+  });
+  document.getElementById('empty').style.display = visible ? 'none' : '';
+}
+q.addEventListener('input', applyFilter);
+chips.forEach(function(c){
+  c.addEventListener('click', function(){
+    chips.forEach(function(x){ x.classList.remove('active'); });
+    c.classList.add('active');
+    filter = c.dataset.filter;
+    applyFilter();
+  });
+});
+document.querySelectorAll('img').forEach(function(img){
+  function replace(){
+    var ph = document.createElement('div');
+    ph.className = 'ph';
+    ph.textContent = 'Foto real do cliente';
+    ph.style.cssText = 'aspect-ratio:1/1;border-radius:12px;background:linear-gradient(135deg,#e8edf5,#cfd8e8);display:grid;place-items:center;color:#7b869c;font-size:13px;text-align:center;padding:10px';
+    img.replaceWith(ph);
+  }
+  img.addEventListener('error', replace);
+  if (img.complete && img.naturalWidth === 0) replace();
+});
+</script>
+</body>
+</html>

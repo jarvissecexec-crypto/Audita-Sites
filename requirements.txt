@@ -1,0 +1,13 @@
+# --- núcleo (obrigatório) -----------------------------------------------
+httpx>=0.27          # cliente HTTP com HTTP/2, timeouts e retries
+beautifulsoup4>=4.12 # parsing de HTML
+lxml>=5.2            # parser rápido para o BeautifulSoup
+jinja2>=3.1          # templates do relatório HTML
+tldextract>=5.1      # domínio registrável (para agrupar links internos)
+
+# --- opcional: sites em JavaScript + Google Maps ------------------------
+# pip install playwright && playwright install chromium
+playwright>=1.45
+
+# Supabase/PostgREST client (próxima etapa)
+supabase>=2.7

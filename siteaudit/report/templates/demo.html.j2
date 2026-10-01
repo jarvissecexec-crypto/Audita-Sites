@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ d.title }} — proposta de novo site</title>
+<style>
+  :root{
+    --accent: {{ d.accent }};
+    --accent-soft: {{ d.accent_soft }};
+    --ink: #0f172a;
+    --muted: #5b6478;
+    --bg: #ffffff;
+    --bg-soft: #f6f8fb;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+       color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;display:block;border-radius:12px}
+  a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+         border-bottom:1px solid rgba(15,23,42,.07)}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+  .brand-dot{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;
+             place-items:center;font-weight:800;font-size:16px}
+  .nav-links{display:none;gap:22px;font-size:14.5px;color:var(--muted);font-weight:500}
+  @media(min-width:860px){.nav-links{display:flex}}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;font-weight:650;
+       font-size:15px;text-decoration:none;border:1px solid transparent;transition:.18s;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px var(--accent-soft)}
+  .btn-primary:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  .btn-ghost{border-color:rgba(15,23,42,.18);color:var(--ink);background:#fff}
+  .btn-whats{background:#16a34a;color:#fff}
+  .hero{padding:72px 0 56px;background:
+      radial-gradient(1200px 480px at 12% -10%, var(--accent-soft), transparent 60%),
+      linear-gradient(180deg,#fff,var(--bg-soft));}
+  .hero-grid{display:grid;gap:44px;align-items:center}@media(min-width:900px){.hero-grid{grid-template-columns:1.05fr .95fr}}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(15,23,42,.08);
+           padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);box-shadow:var(--shadow)}
+  h1{font-size:clamp(32px,5vw,54px);line-height:1.08;letter-spacing:-.03em;margin:18px 0 14px;font-weight:850}
+  h1 span{color:var(--accent)}
+  .lead{font-size:clamp(16px,2vw,19px);color:var(--muted);max-width:56ch}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  .trust{display:flex;flex-wrap:wrap;gap:26px;margin-top:32px;padding-top:26px;border-top:1px solid rgba(15,23,42,.08)}
+  .trust div strong{display:block;font-size:22px;letter-spacing:-.02em}
+  .trust div span{font-size:13px;color:var(--muted)}
+  .hero-media{position:relative}
+  .hero-media img{width:100%;aspect-ratio:4/3;object-fit:cover;box-shadow:var(--shadow)}
+  .hero-fallback{width:100%;aspect-ratio:4/3;border-radius:16px;background:
+      linear-gradient(135deg,var(--accent),#0f172a);display:grid;place-items:center;color:#fff;
+      font-weight:800;font-size:clamp(20px,3vw,30px);text-align:center;padding:24px;box-shadow:var(--shadow)}
+  .float-whats{position:fixed;right:20px;bottom:20px;z-index:60;background:#16a34a;color:#fff;width:58px;height:58px;
+      border-radius:50%;display:grid;place-items:center;box-shadow:0 12px 26px rgba(22,163,74,.4);text-decoration:none}
+  .float-whats svg{width:30px;height:30px;fill:#fff}
+  section{padding:76px 0}
+  .soft{background:var(--bg-soft)}
+  h2{font-size:clamp(24px,3.4vw,36px);letter-spacing:-.025em;margin:0 0 10px;font-weight:800}
+  .sub{color:var(--muted);max-width:62ch;margin:0 0 34px}
+  .cards{display:grid;gap:18px}@media(min-width:700px){.cards{grid-template-columns:repeat(3,1fr)}}
+  .card{background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:var(--radius);padding:24px;
+        box-shadow:var(--shadow);transition:.2s}
+  .card:hover{transform:translateY(-3px)}
+  .card .ico{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);
+             display:grid;place-items:center;font-weight:800;margin-bottom:14px}
+  .card h3{margin:0 0 6px;font-size:17.5px;letter-spacing:-.01em}
+  .card p{margin:0;color:var(--muted);font-size:15px}
+  .gal{display:grid;gap:14px}@media(min-width:640px){.gal{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:960px){.gal{grid-template-columns:repeat(4,1fr)}}
+  .gal figure{margin:0}
+  .gal img{aspect-ratio:1/1;object-fit:cover;width:100%}
+  .gal .ph{aspect-ratio:1/1;border-radius:12px;background:linear-gradient(135deg,#e8edf5,#cfd8e8);
+           display:grid;place-items:center;color:#7b869c;font-size:13px;font-weight:600;text-align:center;padding:10px}
+  .quotes{display:grid;gap:18px}@media(min-width:760px){.quotes{grid-template-columns:repeat(3,1fr)}}
+  .quote{background:#fff;border:1px solid rgba(15,23,42,.07);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+  .stars{color:#f59e0b;letter-spacing:2px;margin-bottom:10px}
+  .quote p{font-size:15.5px;margin:0 0 14px}
+  .who{font-size:14px;color:var(--muted);font-weight:600}
+  details{background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:12px;padding:16px 20px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:650;font-size:16px}
+  details p{color:var(--muted);margin:10px 0 0;font-size:15px}
+  .two{display:grid;gap:32px}@media(min-width:860px){.two{grid-template-columns:1fr 1fr}}
+  .info{display:flex;gap:12px;margin-bottom:18px;align-items:flex-start}
+  .info .i{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent);
+           display:grid;place-items:center;flex:0 0 38px;font-weight:700}
+  .info strong{display:block;font-size:15px}
+  .info span{color:var(--muted);font-size:14.5px}
+  form{background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+  label{display:block;font-size:13.5px;font-weight:650;margin-bottom:6px;color:var(--muted)}
+  input,textarea{width:100%;padding:12px 14px;border:1px solid rgba(15,23,42,.14);border-radius:10px;font-size:15px;
+                 font-family:inherit;margin-bottom:14px;background:#fff}
+  input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  textarea{min-height:104px;resize:vertical}
+  .finalcta{background:linear-gradient(135deg,var(--accent),#0f172a);color:#fff;text-align:center}
+  .finalcta h2{color:#fff}
+  .finalcta .sub{color:rgba(255,255,255,.78);margin-inline:auto}
+  footer{background:#0b1220;color:#9aa5bd;padding:40px 0;font-size:14px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+  .badge{background:#0f172a;color:#fff;font-size:12.5px;padding:8px 14px;border-radius:999px;display:inline-block;
+         margin-bottom:18px;opacity:.9}
+  .note{font-size:12.5px;color:#94a3b8;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="brand-dot">{{ d.initials }}</span>{{ d.brand }}</div>
+    <nav class="nav-links">
+      <a href="#servicos">Serviços</a><a href="#sobre">Sobre</a>
+      <a href="#galeria">Galeria</a>{% if d.testimonials %}<a href="#depoimentos">Depoimentos</a>{% endif %}
+      {% if d.faq %}<a href="#faq">Dúvidas</a>{% endif %}<a href="#contato">Contato</a>
+    </nav>
+     {% if d.whatsapp %}<a class="btn btn-whats" href="{{ d.whatsapp_link }}">WhatsApp</a>
+     {% elif d.phone %}<a class="btn btn-ghost" href="tel:{{ d.phone_digits }}">Ligar</a>{% endif %}
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      {% if d.show_badge %}<span class="badge">Proposta de redesign — demonstração</span>{% endif %}
+      <span class="eyebrow">📍 {{ d.city }}</span>
+      <h1>{{ d.headline|safe }}</h1>
+      <p class="lead">{{ d.subhead }}</p>
+      <div class="cta-row">
+        {% if d.whatsapp %}<a class="btn btn-primary" href="{{ d.whatsapp_link }}">💬 Pedir orçamento pelo WhatsApp</a>
+        {% else %}<a class="btn btn-primary" href="#contato">Pedir orçamento</a>{% endif %}
+        {% if d.phone %}<a class="btn btn-ghost" href="tel:{{ d.phone_digits }}">📞 {{ d.phone }}</a>{% endif %}
+      </div>
+      <div class="trust">
+        {% if d.rating %}<div><strong>{{ d.rating }}★</strong><span>{{ d.reviews }} avaliações no Google</span></div>{% endif %}
+        {% for item in d.trust %}<div><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div>{% endfor %}
+      </div>
+    </div>
+    <div class="hero-media">
+      {% if d.hero_image %}
+        <img src="{{ d.hero_image }}" alt="{{ d.brand }}">
+      {% else %}
+        <div class="hero-fallback">{{ d.brand }}<br><span style="font-weight:500;font-size:16px;opacity:.85">foto de capa do estabelecimento</span></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section id="servicos">
+  <div class="wrap">
+    <h2>O que fazemos por você</h2>
+    <p class="sub">Cada serviço com página própria, fotos reais e botão de orçamento — é assim que o cliente decide.</p>
+    <div class="cards">
+      {% for s in d.services %}
+      <div class="card">
+        <div class="ico">{{ loop.index }}</div>
+        <h3>{{ s.title }}</h3>
+        <p>{{ s.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="sobre" class="soft">
+  <div class="wrap two">
+    <div>
+      <h2>Sobre {{ d.brand }}</h2>
+      <p class="sub">{{ d.about }}</p>
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        {% for item in d.differentials %}
+        <div class="card" style="padding:18px"><div class="ico" style="margin-bottom:8px">✓</div><p>{{ item }}</p></div>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      {% if d.about_image %}<img src="{{ d.about_image }}" alt="Sobre {{ d.brand }}">{% else %}
+      <div class="hero-fallback" style="aspect-ratio:1/1">Foto da equipe / do espaço</div>{% endif %}
+    </div>
+  </div>
+</section>
+
+<section id="galeria">
+  <div class="wrap">
+    <h2>Galeria</h2>
+    <p class="sub">Fotos reais do trabalho — o que mais gera confiança em negócio local.</p>
+    <div class="gal">
+      {% for img in d.gallery %}
+        <figure><img src="{{ img }}" alt="{{ d.brand }}"></figure>
+      {% else %}
+        {% for i in range(8) %}<figure><div class="ph">Foto {{ i+1 }}<br>(sua foto real aqui)</div></figure>{% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if d.testimonials %}<section id="depoimentos" class="soft">
+  <div class="wrap">
+    <h2>Quem já é cliente</h2>
+    <p class="sub">Prova social é o que transforma visita em contato.</p>
+    <div class="quotes">
+      {% for q in d.testimonials %}
+      <div class="quote"><div class="stars">★★★★★</div><p>“{{ q.text }}”</p><div class="who">{{ q.author }}</div></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>{% endif %}
+
+{% if d.faq %}<section id="faq">
+  <div class="wrap">
+    <h2>Perguntas frequentes</h2>
+    <p class="sub">Responder antes que o cliente pergunte encurta a venda.</p>
+    {% for item in d.faq %}
+    <details{% if loop.first %} open{% endif %}><summary>{{ item.q }}</summary><p>{{ item.a }}</p></details>
+    {% endfor %}
+  </div>
+</section>{% endif %}
+
+<section id="contato" class="soft">
+  <div class="wrap two">
+    <div>
+      <h2>Fale com a gente</h2>
+      <p class="sub">Escolha o canal mais rápido para você.</p>
+      {% if d.phone %}<div class="info"><div class="i">📞</div><div><strong>Telefone</strong><span>{{ d.phone }}</span></div></div>{% endif %}
+      {% if d.whatsapp %}<div class="info"><div class="i">💬</div><div><strong>WhatsApp</strong><span>{{ d.whatsapp }}</span></div></div>{% endif %}
+      {% if d.email %}<div class="info"><div class="i">✉️</div><div><strong>E-mail</strong><span>{{ d.email }}</span></div></div>{% endif %}
+      {% if d.address %}<div class="info"><div class="i">📍</div><div><strong>Endereço</strong><span>{{ d.address }}</span></div></div>{% endif %}
+      {% if d.hours %}<div class="info"><div class="i">🕘</div><div><strong>Horário</strong><span>{{ d.hours }}</span></div></div>{% endif %}
+      {% if d.maps_url %}<a class="btn btn-ghost" style="margin-top:8px" href="{{ d.maps_url }}">Ver no Google Maps</a>{% endif %}
+    </div>
+    <form onsubmit="event.preventDefault();alert('Demonstração: este formulário enviaria o lead direto para o WhatsApp/e-mail da empresa.');">
+      <h3 style="margin-top:0">Pedir orçamento</h3>
+      <label for="n">Seu nome</label><input id="n" placeholder="Como podemos te chamar?" required>
+      <label for="w">WhatsApp</label><input id="w" placeholder="(51) 99999-9999" required>
+      <label for="m">O que você precisa?</label><textarea id="m" placeholder="Conte rapidamente o que precisa"></textarea>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit">Enviar pedido</button>
+      <p class="note">Na versão final, o pedido chega no WhatsApp da empresa e fica salvo no painel.</p>
+    </form>
+  </div>
+</section>
+
+<section class="finalcta">
+  <div class="wrap">
+    <h2>{{ d.final_headline }}</h2>
+    <p class="sub">{{ d.final_text }}</p>
+    <div class="cta-row" style="justify-content:center">
+      {% if d.whatsapp %}<a class="btn btn-primary" href="{{ d.whatsapp_link }}">💬 Falar agora no WhatsApp</a>
+      {% else %}<a class="btn btn-primary" href="#contato">Fale com a equipe</a>{% endif %}
+      {% if d.phone %}<a class="btn btn-ghost" href="tel:{{ d.phone_digits }}">📞 {{ d.phone }}</a>{% endif %}
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© {{ d.year }} {{ d.brand }} — {{ d.city }}</div>
+    <div>{{ d.phone }} {% if d.email %}· {{ d.email }}{% endif %}</div>
+  </div>
+</footer>
+
+{% if d.whatsapp %}<a class="float-whats" href="{{ d.whatsapp_link }}" aria-label="WhatsApp">
+<svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.23 8.23 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.42h-.48c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03 0 1.2.87 2.35.99 2.51.12.17 1.71 2.6 4.14 3.65 1.45.62 2.02.67 2.74.57.44-.07 1.36-.56 1.55-1.09.19-.54.19-1 .13-1.1-.05-.1-.22-.16-.47-.29z"/></svg>
+</a>{% endif %}
+<script>
+// Fotos externas podem não carregar (preview offline / URL quebrada):
+// troca por um placeholder com a mesma proporção, mantendo o layout bonito.
+document.querySelectorAll('img').forEach(function(img){
+  function replace(){
+    var ph = document.createElement('div');
+    var hero = img.closest('.hero-media');
+    ph.className = hero ? 'hero-fallback' : 'ph';
+    ph.textContent = 'Foto real do cliente';
+    ph.style.aspectRatio = hero ? '4/3' : '1/1';
+    ph.style.fontSize = hero ? '20px' : '13px';
+    img.replaceWith(ph);
+  }
+  img.addEventListener('error', replace);
+  if (img.complete && img.naturalWidth === 0) { replace(); }
+});
+</script>
+</body>
+</html>

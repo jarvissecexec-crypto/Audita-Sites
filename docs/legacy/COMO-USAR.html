@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>siteaudit — como funciona e o que você precisa para rodar</title>
+<style>
+  :root{--ink:#0f172a;--muted:#5b6478;--line:rgba(15,23,42,.10);--bg:#f7f9fc;--accent:#2563eb;
+        --ok:#16a34a;--warn:#ea580c;--crit:#dc2626;--code:#0f172a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  header{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:40px 0 34px}
+  header h1{margin:0 0 8px;font-size:clamp(24px,3.6vw,36px);letter-spacing:-.03em}
+  header p{margin:0;opacity:.85;font-size:16px;max-width:70ch}
+  nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+  nav.toc a{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+            border-radius:999px;padding:7px 14px;font-size:13.5px;text-decoration:none;font-weight:600}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;margin:20px 0;
+          box-shadow:0 6px 20px rgba(15,23,42,.05)}
+  h2{margin:0 0 6px;font-size:22px;letter-spacing:-.02em}
+  h3{margin:26px 0 8px;font-size:16.5px;letter-spacing:-.01em}
+  h3:first-of-type{margin-top:14px}
+  .lead{color:var(--muted);margin:0 0 18px;font-size:15px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:22px}
+  li{margin:5px 0}
+  code{background:#f1f5f9;border:1px solid var(--line);padding:2px 6px;border-radius:6px;font-size:13px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code);color:#e2e8f0;padding:16px 18px;border-radius:12px;overflow:auto;
+      font-size:13px;line-height:1.6;margin:12px 0}
+  pre code{background:none;border:none;color:inherit;padding:0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#f8fafc;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fcfdff}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:14px 0}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:800;
+         text-transform:uppercase;letter-spacing:.04em}
+  .b-ok{background:#dcfce7;color:#166534}
+  .b-opt{background:#dbeafe;color:#1e40af}
+  .b-no{background:#fee2e2;color:#991b1b}
+  .b-warn{background:#ffedd5;color:#9a3412}
+  .callout{border-left:4px solid var(--accent);background:#f5f8ff;border-radius:0 12px 12px 0;
+           padding:14px 18px;margin:16px 0;font-size:14.5px}
+  .callout.warn{border-color:var(--warn);background:#fff8f3}
+  .callout.ok{border-color:var(--ok);background:#f4fdf7}
+  .callout b{display:block;margin-bottom:4px}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:12px 0}
+  .steps li{counter-increment:s;position:relative;padding-left:42px;margin:14px 0}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;
+                    background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+  .kpi{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:16px 0}
+  .kpi div{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+  .kpi b{display:block;font-size:20px;letter-spacing:-.02em}
+  .kpi span{font-size:12.5px;color:var(--muted)}
+  footer{padding:26px 0 50px;color:var(--muted);font-size:13px;text-align:center}
+  .flow{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:16px 0}
+  .flow div{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow b{display:block;margin-bottom:4px;font-size:14.5px}
+  .flow span{font-size:13px;color:var(--muted)}
+  .arrow{text-align:center;color:var(--muted);font-size:20px;margin:2px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>siteaudit — como funciona e o que você precisa</h1>
+    <p>Guia direto: o que a ferramenta faz, por onde ela passa para fazer, e exatamente o que instalar,
+       configurar e pagar (spoiler: para o uso básico, <b>nada</b>).</p>
+    <nav class="toc">
+      <a href="#resumo">Resumo em 30s</a>
+      <a href="#oque">O que faz</a>
+      <a href="#como">Como faz</a>
+      <a href="#preciso">O que preciso</a>
+      <a href="#instalar">Instalação</a>
+      <a href="#rodar">Rodando</a>
+      <a href="#saida">Arquivos gerados</a>
+      <a href="#custos">Custos</a>
+      <a href="#problemas">Problemas comuns</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="resumo">
+  <h2>Resumo em 30 segundos</h2>
+  <p class="lead">Você dá um <b>nicho</b> e uma <b>região</b>. A ferramenta devolve uma lista de empresas
+  com o site de cada uma diagnosticado e uma proposta de site novo pronta para mostrar.</p>
+  <div class="flow">
+    <div><b>1. Descobrir</b><span>Busca empresas do nicho na cidade (Google Maps, Bing, DuckDuckGo, OpenStreetMap ou sua lista)</span></div>
+    <div><b>2. Auditar</b><span>Abre cada site e extrai conteúdo, SEO, performance, design, tecnologia e contatos</span></div>
+    <div><b>3. Gerar</b><span>Produz o dashboard, o diagnóstico de cada site e a landing page de demonstração</span></div>
+  </div>
+  <div class="callout ok">
+    <b>Não precisa de chave de API para começar</b>
+    Não precisa de hospedagem. Não precisa de banco de dados. É um programa de linha de comando que roda
+    no seu computador e cospe arquivos HTML/Markdown/CSV que você abre no navegador.
+  </div>
+</section>
+
+<section id="oque">
+  <h2>O que exatamente ela faz</h2>
+
+  <h3>1) Descobre empresas (leads)</h3>
+  <p>Você informa nicho + cidade + UF. Ela consulta as fontes que você escolher e monta uma lista com:
+  nome, telefone, endereço, site, categoria, nota no Google e nº de avaliações. Quem <b>não tem site</b>
+  entra marcado como oportunidade — é a venda mais fácil que existe.</p>
+
+  <h3>2) Audita cada site encontrado</h3>
+  <p>Para cada site ela faz uma visita (como um visitante faria) e extrai:</p>
+  <div class="grid">
+    <div class="card"><b>Conteúdo</b><br><span class="lead">títulos (h1–h6), textos, listas de serviços, perguntas frequentes, contagem de palavras e os termos mais usados</span></div>
+    <div class="card"><b>SEO</b><br><span class="lead">title, meta description, canonical, sitemap.xml, robots.txt, HTTPS, dados estruturados (Schema.org), responsivo</span></div>
+    <div class="card"><b>Performance</b><br><span class="lead">tempo de resposta do servidor, peso da página, nº de requisições, arquivos que travam o carregamento, imagens pesadas</span></div>
+    <div class="card"><b>Design</b><br><span class="lead">paleta de cores (com teste de contraste), fontes, seções existentes, botões de ação (CTA), menu fixo</span></div>
+    <div class="card"><b>Tecnologia</b><br><span class="lead">WordPress, Wix, React, Elementor, Google Analytics, pixel do Meta, WhatsApp, chat, servidor/CDN…</span></div>
+    <div class="card"><b>Conversão</b><br><span class="lead">telefones, WhatsApp, e-mail, formulários, redes sociais, endereço, horários e mapa</span></div>
+  </div>
+  <p>Cada problema vira um <b>achado</b> com gravidade (crítico, alto, médio, baixo), explicação do impacto
+  e a solução que você vai entregar. A soma deles gera uma <b>nota de 0 a 100</b>.</p>
+
+  <h3>3) Gera o material de venda</h3>
+  <p>Para cada empresa: um <b>diagnóstico</b> (o que está errado), uma <b>proposta</b> (landing page nova
+  e moderna, montada com as cores, textos, fotos e WhatsApp reais do cliente) e um <b>briefing</b> em
+  Markdown (o resumo para reconstruir o site em qualquer ferramenta).</p>
+</section>
+
+<section id="como">
+  <h2>Como ela faz (por dentro)</h2>
+  <div class="steps">
+    <li><b>Consulta as fontes</b> — cada provedor tem uma estratégia: o Bing e o DuckDuckGo são consultados
+      por HTTP direto; o Google Maps e sites em JavaScript são abertos num <b>navegador real</b> (Chromium),
+      porque o conteúdo só aparece depois que o JavaScript roda.</li>
+    <li><b>Normaliza e limpa</b> — remove diretórios e redes sociais (um "site" que é só Facebook ou
+      TripAdvisor conta como <i>sem site</i>), junta duplicados e completa dados faltantes cruzando as fontes.</li>
+    <li><b>Baixa cada site</b> com educação: respeita o <code>robots.txt</code>, espera entre requisições e
+      se identifica. Se a página voltar vazia (porque é feita em JavaScript), ela <b>reabre no navegador automaticamente</b>.</li>
+    <li><b>Extrai e diagnostica</b> — parsing do HTML + CSS para conteúdo, SEO, design e tecnologia;
+      medições de tempo e peso para performance; e uma bateria de regras que viram os achados.</li>
+    <li><b>Pontua</b> — cada achado tem um peso por gravidade; a nota final vem de uma curva suave
+      (não é um "zera tudo" artificial).</li>
+    <li><b>Escreve os arquivos</b> — templates HTML/Markdown preenchidos com os dados extraídos.</li>
+  </div>
+  <div class="callout">
+    <b>Por que "scraping" e não uma API oficial?</b>
+    Porque APIs oficiais de busca não existem de graça. A ferramenta suporta as duas coisas:
+    os provedores gratuitos (sem chave, mais frágeis) e a <b>Google Places API</b> (oficial, estável,
+    precisa de cadastro). Você escolhe com a flag <code>--providers</code>.
+  </div>
+</section>
+
+<section id="preciso">
+  <h2>O que você precisa <span class="badge b-ok">obrigatório</span> / <span class="badge b-opt">opcional</span></h2>
+  <table>
+    <tr><th style="width:30%">Item</th><th style="width:14%">Necessidade</th><th>Detalhe</th></tr>
+    <tr>
+      <td><b>Python 3.10+</b></td>
+      <td><span class="badge b-ok">obrigatório</span></td>
+      <td>A linguagem que roda a ferramenta. Windows: baixe em python.org e <b>marque "Add Python to PATH"</b>.
+          Mac: <code>brew install python3</code>. Linux: já vem.</td>
+    </tr>
+    <tr>
+      <td><b>Dependências Python</b></td>
+      <td><span class="badge b-ok">obrigatório</span></td>
+      <td><code>pip install -r requirements.txt</code> — são 5 bibliotecas (cliente HTTP, parser de HTML,
+          templates…). Nada pesado.</td>
+    </tr>
+    <tr>
+      <td><b>Chave de API</b></td>
+      <td><span class="badge b-no">NÃO precisa</span></td>
+      <td>Você consegue rodar tudo com os provedores gratuitos (Bing, DuckDuckGo, Google Maps via navegador,
+          OpenStreetMap). A chave só entra se você quiser a rota oficial do Google.</td>
+    </tr>
+    <tr>
+      <td><b>Navegador (Chromium)</b></td>
+      <td><span class="badge b-opt">recomendado</span></td>
+      <td>Só é necessário para: sites feitos em JavaScript, capturas de tela e o Google Maps.
+          Instala com <code>bash scripts/install_browser.sh</code> (funciona mesmo sem senha de administrador).</td>
+    </tr>
+    <tr>
+      <td><b>Google Places API</b></td>
+      <td><span class="badge b-opt">opcional</span></td>
+      <td>Rota oficial e estável. Veja o passo a passo abaixo. Só vale a pena se você for rodar
+          muita busca por mês ou a partir de um servidor (VPS).</td>
+    </tr>
+    <tr>
+      <td><b>Hospedagem / servidor</b></td>
+      <td><span class="badge b-no">NÃO precisa</span></td>
+      <td>O resultado é arquivo estático. Para mostrar ao cliente você pode: abrir o HTML no seu computador,
+          mandar o arquivo por WhatsApp/e-mail, ou — se quiser um link — arrastar a pasta para
+          Netlify, Cloudflare Pages ou GitHub Pages (todos têm plano gratuito).</td>
+    </tr>
+    <tr>
+      <td><b>Banco de dados</b></td>
+      <td><span class="badge b-no">NÃO precisa</span></td>
+      <td>Os dados ficam em arquivos: <code>leads.csv</code> (planilha) e <code>leads.json</code> (completo).</td>
+    </tr>
+    <tr>
+      <td><b>Cartão de crédito</b></td>
+      <td><span class="badge b-no">NÃO precisa</span></td>
+      <td>A menos que você ative a Places API (o Google pede cadastro de pagamento para liberar,
+          mas cobra só se passar da franquia gratuita).</td>
+    </tr>
+  </table>
+
+  <h3>Como conseguir a chave da Google Places API <span class="badge b-opt">opcional</span></h3>
+  <div class="steps">
+    <li>Entre em <code>console.cloud.google.com</code> e crie um projeto (ou escolha um existente).</li>
+    <li>Vá em <b>APIs e serviços → Biblioteca</b>, busque <b>Places API</b> e clique em <b>Ativar</b>.</li>
+    <li>Vá em <b>Credenciais → Criar credencial → Chave de API</b>.</li>
+    <li><b>Restrinja a chave:</b> limite ao Places API e, se possível, ao seu IP. Isso evita surpresas na fatura.</li>
+    <li>Habilite o <b>faturamento</b> na conta (o Google exige para liberar a cota, mas a franquia mensal
+        cobre dezenas de milhares de consultas — para levantar algumas centenas de empresas por mês você
+        normalmente fica no gratuito).</li>
+    <li>Use a chave:<br>
+      <pre><code># Linux / Mac
+export GOOGLE_MAPS_API_KEY="sua-chave-aqui"
+python3 -m siteaudit run --niche "pizzaria" --city "Igrejinha" --state RS --providers places,maps
+
+# Windows (PowerShell)
+$env:GOOGLE_MAPS_API_KEY="sua-chave-aqui"
+
+# ou passe direto no comando
+python3 -m siteaudit run --niche "pizzaria" --city "Igrejinha" --state RS --providers places --places-key SUA_CHAVE</code></pre>
+    </li>
+  </div>
+  <div class="callout warn">
+    <b>Alternativa sem chave e sem custo</b>
+    O provedor <code>maps</code> raspa o Google Maps com navegador — dá os mesmos dados (nome, telefone,
+    endereço, nota) sem cadastro nenhum. Ele é mais frágil: o Google pode pedir CAPTCHA e costuma bloquear
+    IPs de datacenter. Funciona bem no seu computador de casa/escritório.
+  </div>
+</section>
+
+<section id="instalar">
+  <h2>Instalação (3 minutos)</h2>
+  <pre><code># 1. entre na pasta
+cd siteaudit
+
+# 2. dependências básicas
+pip install -r requirements.txt
+
+# 3. navegador (opcional, mas recomendado)
+bash scripts/install_browser.sh
+
+# 4. confira
+python3 -m siteaudit providers</code></pre>
+  <p>No Windows, use o <b>PowerShell</b> ou o <b>Terminal do VS Code</b> e troque <code>python3</code> por
+  <code>python</code>. Se o <code>pip</code> não for reconhecido, use <code>python -m pip</code>.</p>
+  <p>Se o script do navegador falhar por falta de permissão, você <b>não</b> precisa dele para o básico —
+  apenas não use <code>--providers maps</code>, <code>--render</code> nem <code>--screenshots</code>.</p>
+</section>
+
+<section id="rodar">
+  <h2>Rodando</h2>
+  <h3>O comando principal</h3>
+  <pre><code>python3 -m siteaudit run --niche "pizzaria" --city "Igrejinha" --state RS \
+    --providers bing,ddg,maps --limit 25</code></pre>
+  <table>
+    <tr><th style="width:26%">Flag</th><th>O que faz</th></tr>
+    <tr><td><code>--niche</code></td><td>o ramo: "pizzaria", "contador", "advogado", "academia", "estética"…</td></tr>
+    <tr><td><code>--city</code> / <code>--state</code></td><td>cidade e UF da busca</td></tr>
+    <tr><td><code>--providers</code></td><td>fontes de dados: <code>bing</code>, <code>ddg</code>, <code>maps</code>, <code>places</code>, <code>osm</code>, <code>google</code>, <code>manual</code></td></tr>
+    <tr><td><code>--limit</code></td><td>quantos leads por provedor (padrão 20)</td></tr>
+    <tr><td><code>--max-audit</code></td><td>limite de sites a auditar (para testar rápido use 5)</td></tr>
+    <tr><td><code>--screenshots</code></td><td>salva uma captura da home de cada site</td></tr>
+    <tr><td><code>--render</code></td><td>usa navegador em todos os sites (mais lento e mais fiel)</td></tr>
+    <tr><td><code>--fast</code></td><td>pula a medição do tamanho dos arquivos (bem mais rápido)</td></tr>
+    <tr><td><code>--delay 1.5</code></td><td>pausa entre requisições — use se for raspar muita coisa</td></tr>
+  </table>
+
+  <h3>Outros comandos</h3>
+  <pre><code># só descobrir empresas (sem auditar), exportando CSV
+python3 -m siteaudit discover --niche "contador" --city "Novo Hamburgo" --state RS --providers maps --csv leads.csv
+
+# auditar sites específicos
+python3 -m siteaudit audit --url https://exemplo.com.br --city Gramado --state RS
+
+# auditar uma lista de URLs (um por linha)
+python3 -m siteaudit audit --file urls.txt
+
+# usar sua própria lista de empresas (CSV/JSON)
+python3 -m siteaudit run --niche "meus leads" --providers manual --file meus-leads.csv
+
+# abrir o relatório no navegador
+python3 -m siteaudit serve --dir relatorios/demo-completa</code></pre>
+
+  <div class="callout ok">
+    <b>Dica de ouro para o primeiro teste</b>
+    Comece pequeno: <code>--limit 10 --max-audit 5</code>. Assim você valida tudo em 1 minuto antes de
+    sair varrendo 200 empresas.
+  </div>
+</section>
+
+<section id="saida">
+  <h2>O que é gerado</h2>
+  <pre><code>relatorios/&lt;nicho&gt;-&lt;cidade&gt;-&lt;hora&gt;/
+├── relatorio-completo.html   ← ABRA ESTE (tem tudo num arquivo só)
+├── index.html                ← dashboard com filtros (usa links entre arquivos)
+├── leads.csv                 ← para planilha / CRM
+├── leads.json                ← todos os dados, inclusive as auditorias
+├── relatorios/&lt;empresa&gt;.html  ← diagnóstico detalhado de cada site
+├── propostas/&lt;empresa&gt;.html   ← a landing page nova (sua demo)
+├── briefings/&lt;empresa&gt;.md     ← briefing para reconstruir o site
+├── sites/&lt;empresa&gt;.json       ← dados brutos extraídos
+└── assets/&lt;empresa&gt;.png       ← capturas (com --screenshots)</code></pre>
+  <div class="callout">
+    <b>Qual arquivo usar com o cliente?</b>
+    Para apresentar: <code>propostas/&lt;empresa&gt;.html</code> (a demo) ou o
+    <code>relatorio-completo.html</code> se quiser mostrar tudo de uma vez, inclusive em apresentações
+    ou vídeos — ele não depende de mais nenhum arquivo, pode ser enviado por e-mail ou WhatsApp.
+  </div>
+</section>
+
+<section id="custos">
+  <h2>Custos</h2>
+  <div class="kpi">
+    <div><b>R$ 0</b><span>Uso básico (Bing, DuckDuckGo, Maps por navegador, OpenStreetMap)</span></div>
+    <div><b>R$ 0</b><span>Hospedagem — você não precisa publicar nada</span></div>
+    <div><b>Franquia grátis</b><span>Places API, se ativar: cobertura generosa para centenas de empresas/mês</span></div>
+    <div><b>Sua internet</b><span>Cada auditoria baixa ~1–5 MB por site</span></div>
+  </div>
+</section>
+
+<section id="problemas">
+  <h2>Problemas comuns</h2>
+  <table>
+    <tr><th style="width:34%">Sintoma</th><th>Causa e solução</th></tr>
+    <tr>
+      <td><b>Abro o HTML e não vejo nada / os links não abrem</b></td>
+      <td>Isso acontece quando o arquivo é aberto dentro de um visualizador isolado (iframe),
+          onde os caminhos relativos entre arquivos não funcionam. <b>Solução: abra o
+          <code>relatorio-completo.html</code></b> — ele tem tudo dentro de um único arquivo, sem
+          depender de pasta nenhuma.</td>
+    </tr>
+    <tr>
+      <td><code>maps: lista de resultados não carregou</code></td>
+      <td>Google pediu CAPTCHA ou bloqueou o IP (comum em servidor/VPS). Rode do seu computador,
+          aumente <code>--delay</code> ou troque para <code>--providers places</code> (oficial) / <code>osm</code>.</td>
+    </tr>
+    <tr>
+      <td><code>ddg: resposta bloqueada</code></td>
+      <td>DuckDuckGo limita consultas seguidas. Espere alguns minutos, aumente o delay ou use <code>bing</code>.</td>
+    </tr>
+    <tr>
+      <td><code>libnspr4.so not found</code></td>
+      <td>Faltam bibliotecas do Chromium. Rode <code>bash scripts/install_browser.sh</code>.</td>
+    </tr>
+    <tr>
+      <td>Site aparece com nota muito baixa mas carrega bem</td>
+      <td>O site é todo em JavaScript. Use <code>--render</code> para abrir com navegador real.</td>
+    </tr>
+    <tr>
+      <td>Muitos <code>HTTP 403</code></td>
+      <td>A hospedagem do site bloqueia visitas automáticas. Nada a fazer pelo lado da ferramenta —
+          ela registra como "Não auditado" e segue.</td>
+    </tr>
+    <tr>
+      <td>Só aparecem diretórios e listas</td>
+      <td>A busca web às vezes traz agregadores. A ferramenta já filtra os conhecidos
+          (Guiamais, Telelistas, TripAdvisor, listas "melhores de…"). Combine com <code>maps</code>
+          para ter dados de empresa de verdade.</td>
+    </tr>
+  </table>
+
+  <h3>Limites e cuidados</h3>
+  <ul>
+    <li>Raspar buscadores fere os termos de serviço do Google e do Bing. Para operação comercial recorrente,
+        prefira a <b>Places API</b> (rota oficial).</li>
+    <li>Telefone e e-mail são dados pessoais — no Brasil, trate conforme a <b>LGPD</b>: finalidade clara,
+        contato proporcional e canal de opt-out.</li>
+    <li>A nota de performance é uma <b>estimativa</b> da própria visita, não um Lighthouse completo.
+        Para propostas grandes, confirme com o PageSpeed Insights.</li>
+    <li>A detecção de tecnologia é por assinatura — pode haver falso positivo.</li>
+  </ul>
+</section>
+
+</div>
+
+<footer>siteaudit · guia de uso · todas as informações deste arquivo são locais — nenhum recurso externo é carregado</footer>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ a.name }} — diagnóstico do site</title>
+<style>
+  :root{--ink:#0f172a;--muted:#5b6478;--line:rgba(15,23,42,.09);--bg:#f7f9fc;--accent:#2563eb;
+        --critico:#dc2626;--alto:#ea580c;--medio:#ca8a04;--baixo:#0d9488}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  header{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:30px 0}
+  .top{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:flex-start}
+  h1{margin:0 0 6px;font-size:clamp(22px,3vw,30px);letter-spacing:-.025em}
+  .meta{opacity:.82;font-size:13.5px}
+  .scorebox{text-align:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+            border-radius:16px;padding:14px 24px;min-width:150px}
+  .scorebox b{display:block;font-size:44px;line-height:1;letter-spacing:-.03em}
+  .scorebox span{font-size:12.5px;opacity:.85}
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 0}
+  nav.tabs a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13.5px;
+             color:var(--muted);font-weight:650}
+  nav.tabs a:hover{background:var(--ink);color:#fff;text-decoration:none}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin:18px 0;
+          box-shadow:0 6px 20px rgba(15,23,42,.05)}
+  h2{margin:0 0 4px;font-size:19px;letter-spacing:-.02em}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .grid2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h4{margin:0 0 6px;font-size:14px}
+  .card p{margin:0;font-size:13.5px;color:var(--muted)}
+  .big{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .bar{height:8px;border-radius:8px;background:#e2e8f0;overflow:hidden;margin-top:8px}
+  .bar i{display:block;height:100%;border-radius:8px}
+  .finding{border-left:4px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fbfdff}
+  .finding.critico{border-color:var(--critico);background:#fef4f4}
+  .finding.alto{border-color:var(--alto);background:#fff7f2}
+  .finding.medio{border-color:var(--medio);background:#fffdf2}
+  .finding.baixo{border-color:var(--baixo);background:#f2fbfa}
+  .finding h4{margin:0 0 4px;font-size:15px}
+  .finding .tag{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;opacity:.7}
+  .finding p{margin:6px 0 0;font-size:13.5px;color:var(--muted)}
+  .finding .fix{color:#166534;font-weight:600}
+  .chips span{display:inline-block;background:#f1f5f9;border:1px solid var(--line);border-radius:999px;
+              padding:5px 11px;font-size:12.5px;margin:3px 4px 3px 0;font-weight:600;color:#334155}
+  .swatch{display:flex;gap:8px;flex-wrap:wrap}
+  .swatch div{width:86px;border-radius:10px;overflow:hidden;border:1px solid var(--line);font-size:11px;text-align:center}
+  .swatch i{display:block;height:48px}
+  .swatch span{display:block;padding:4px 2px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:6px;font-size:12.5px}
+  .quote{border-left:3px solid var(--line);padding-left:12px;color:var(--muted);font-size:13.5px;margin:8px 0}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
+  .pill.ok{background:#dcfce7;color:#166534}.pill.no{background:#fee2e2;color:#991b1b}
+  a{color:var(--accent)}
+  img.shot{width:100%;border-radius:12px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <div>
+      <h1>{{ a.name }}</h1>
+      <div class="meta">
+        <a href="{{ a.url }}" target="_blank" rel="noopener" style="color:#fff">{{ a.url }}</a> ·
+        auditado em {{ a.audited_at }} · HTTP {{ a.fetch.status_code }} em {{ a.fetch.elapsed_ms }} ms
+      </div>
+      <div class="meta" style="margin-top:6px">
+        {{ a.city }} {{ a.state }} · {{ a.category }}
+        {% if a.phone %} · {{ a.phone }}{% endif %}
+        {% if a.maps_url %} · <a href="{{ a.maps_url }}" target="_blank" rel="noopener" style="color:#fff">Google Maps</a>{% endif %}
+      </div>
+      <nav class="tabs">
+        <a href="#resumo">Resumo</a><a href="#achados">Achados</a><a href="#seo">SEO</a>
+        <a href="#performance">Performance</a><a href="#design">Design</a><a href="#conteudo">Conteúdo</a>
+        <a href="#tecnologia">Tecnologia</a><a href="#contatos">Contatos</a><a href="#proposta">Proposta</a>
+      </nav>
+    </div>
+    <div class="scorebox">
+      <b>{{ a.score if a.score is not none else '—' }}</b>
+      <span>nota geral (0-100)</span>
+      <div style="margin-top:8px"><span class="pill" style="background:rgba(255,255,255,.2);color:#fff">{{ a.opportunity }}</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<section id="resumo">
+  <h2>Resumo executivo</h2>
+  <p class="hint">{{ a.opportunity_note }}</p>
+  <div class="grid">
+    {% for cat, val in a.scores_by_category.items() %}
+    <div class="card">
+      <h4>{{ cat }}</h4>
+      <div class="big">{{ val }}</div>
+      <div class="bar"><i style="width:{{ val }}%;background:{% if val>=75 %}#16a34a{% elif val>=50 %}#ca8a04{% else %}#dc2626{% endif %}"></i></div>
+    </div>
+    {% endfor %}
+    <div class="card"><h4>Achados por gravidade</h4>
+      <p><b>{{ a.counts.critico }}</b> críticos · <b>{{ a.counts.alto }}</b> altos ·
+         <b>{{ a.counts.medio }}</b> médios · <b>{{ a.counts.baixo }}</b> baixos</p></div>
+    <div class="card"><h4>Palavras no site</h4><div class="big">{{ a.content.word_count }}</div></div>
+  </div>
+  <h2 style="margin-top:22px">Ganhos rápidos (o que mostrar primeiro)</h2>
+  <p class="hint">Estes são os pontos de maior impacto visual na sua demonstração.</p>
+  {% for f in a.quick_wins %}
+  <div class="finding {{ f.severity }}">
+    <h4>{{ f.title }}</h4>
+    <p>{{ f.detail }}</p>
+    {% if f.impact %}<p><b>Por que importa:</b> {{ f.impact }}</p>{% endif %}
+    <p class="fix">✔ {{ f.fix }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+<section id="achados">
+  <h2>Todos os achados</h2>
+  <p class="hint">{{ a.findings|length }} itens, do mais grave ao mais leve.</p>
+  {% for f in a.findings %}
+  <div class="finding {{ f.severity }}">
+    <span class="tag">{{ f.severity }} · {{ f.category }}</span>
+    <h4 style="margin-top:4px">{{ f.title }}</h4>
+    <p>{{ f.detail }}</p>
+    {% if f.impact %}<p><b>Impacto:</b> {{ f.impact }}</p>{% endif %}
+    <p class="fix">✔ {{ f.fix }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+<section id="seo">
+  <h2>SEO</h2>
+  <div class="grid2">
+    <div class="card">
+      <h4>Title ({{ a.seo.title_len }} caracteres)</h4>
+      <p>{{ a.seo.title or '— não definido —' }}</p>
+      <h4 style="margin-top:14px">Meta description ({{ a.seo.description_len }})</h4>
+      <p>{{ a.seo.description or '— não definida —' }}</p>
+      <h4 style="margin-top:14px">Canonical</h4><p><code>{{ a.seo.canonical or 'ausente' }}</code></p>
+    </div>
+    <div class="card">
+      <h4>Indexação e internacionalização</h4>
+      <table>
+        <tr><th>HTTPS</th><td><span class="pill {{ 'ok' if a.seo.https else 'no' }}">{{ 'sim' if a.seo.https else 'não' }}</span></td></tr>
+        <tr><th>robots.txt</th><td><span class="pill {{ 'ok' if a.seo.robots_ok else 'no' }}">{{ 'ok' if a.seo.robots_ok else 'ausente' }}</span></td></tr>
+        <tr><th>sitemap.xml</th><td><span class="pill {{ 'ok' if a.seo.sitemap_ok else 'no' }}">{{ a.seo.sitemap_url or 'ausente' }}</span></td></tr>
+        <tr><th>lang</th><td>{{ a.seo.lang or 'ausente' }}</td></tr>
+        <tr><th>viewport</th><td>{{ a.seo.viewport or 'ausente' }}</td></tr>
+        <tr><th>Open Graph</th><td>{{ 'completo' if a.seo.og.get('og:image') else 'incompleto' }}</td></tr>
+        <tr><th>JSON-LD</th><td>{{ a.schema.types|join(', ') or 'nenhum' }}</td></tr>
+        <tr><th>LocalBusiness</th><td><span class="pill {{ 'ok' if a.schema.has_local_business else 'no' }}">{{ 'sim' if a.schema.has_local_business else 'não' }}</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <h4 style="margin-top:18px">Estrutura de títulos</h4>
+  <table>
+    <tr><th>Nível</th><th>Texto</th></tr>
+    {% for h in a.content.headings[:28] %}<tr><td>H{{ h.level }}</td><td>{{ h.text }}</td></tr>{% endfor %}
+  </table>
+</section>
+
+<section id="performance">
+  <h2>Performance</h2>
+  <div class="grid">
+    <div class="card"><h4>Duração da resposta</h4><div class="big">{{ a.perf.response_duration_ms|default(a.fetch.elapsed_ms, true) }} ms</div><p>{% if a.perf.measurement_method|default(a.fetch.method, true) == 'browser' %}Carregamento no navegador (inclui renderização){% else %}Requisição HTTP completa, incluindo transferência do corpo; não é TTFB{% endif %}</p></div>
+    <div class="card"><h4>Peso estimado</h4><div class="big">{{ a.perf.estimated_page_kb }} KB</div><p>HTML {{ a.perf.html_kb }} KB + assets medidos</p></div>
+    <div class="card"><h4>Requisições</h4><div class="big">{{ a.perf.requests_total_estimate }}</div><p>{{ a.perf.requests_scripts }} scripts · {{ a.perf.requests_styles }} CSS · {{ a.perf.requests_images }} imagens</p></div>
+    <div class="card"><h4>Recursos bloqueantes</h4><div class="big">{{ a.perf.render_blocking_count }}</div><p>atrasam a primeira pintura</p></div>
+    <div class="card"><h4>Terceiros</h4><div class="big">{{ a.perf.third_party_count }}</div><p>{{ a.perf.third_party_domains[:5]|join(', ') }}</p></div>
+    <div class="card"><h4>Nota de performance</h4><div class="big">{{ a.perf.perf_grade }}</div><p>heurística própria (sem Lighthouse)</p></div>
+  </div>
+  {% if a.perf.heavy_assets %}
+  <h4 style="margin-top:16px">Arquivos pesados</h4>
+  <table><tr><th>KB</th><th>URL</th></tr>
+  {% for h in a.perf.heavy_assets %}<tr><td>{{ h.kb }}</td><td style="word-break:break-all">{{ h.url }}</td></tr>{% endfor %}</table>
+  {% endif %}
+  {% if a.screenshot %}<h4 style="margin-top:16px">Captura da página</h4><img class="shot" src="{{ a.screenshot }}" alt="captura">{% endif %}
+</section>
+
+<section id="design">
+  <h2>Design e conversão</h2>
+  <div class="grid2">
+    <div class="card">
+      <h4>Paleta extraída</h4>
+      <div class="swatch">
+        {% for c in a.design.palette %}<div><i style="background:{{ c.hex }}"></i><span>{{ c.hex }}</span></div>{% endfor %}
+      </div>
+      <p style="margin-top:10px">Fundo {{ a.design.bg_color }} · texto {{ a.design.text_color }} · contraste {{ a.design.contrast_ratio }}:1</p>
+    </div>
+    <div class="card">
+      <h4>Tipografia e formas</h4>
+      <p>Fontes: {{ a.design.fonts|join(', ') or 'não identificadas' }}</p>
+      <p>Tamanhos (px): {{ a.design.font_sizes_px[:10]|join(', ') }}</p>
+      <p>Raio de borda: {{ a.design.border_radius|join(', ') or '—' }}</p>
+      <p>Grid/Flex: {{ 'sim' if a.design.uses_grid_flex else 'não' }} · Menu fixo: {{ 'sim' if a.design.has_sticky_menu else 'não' }}</p>
+    </div>
+  </div>
+  <h4 style="margin-top:16px">Seções identificadas</h4>
+  <div class="chips">{% for s in a.design.sections %}<span>{{ s }}</span>{% else %}<span>poucas seções identificadas</span>{% endfor %}</div>
+  <h4 style="margin-top:16px">CTAs encontrados</h4>
+  <div class="chips">{% for c in a.design.ctas %}<span>{{ c }}</span>{% else %}<span>nenhum CTA claro</span>{% endfor %}</div>
+  <div class="grid" style="margin-top:16px">
+    <div class="card"><h4>Imagens</h4><div class="big">{{ a.media.images_total }}</div>
+      <p>{{ a.media.images_missing_alt }} sem alt · {{ a.media.images_lazy }} com lazy load · {{ a.media.images_modern_format }} em WebP/AVIF</p></div>
+    <div class="card"><h4>Formulários</h4><div class="big">{{ a.forms.form_count }}</div>
+      <p>{% for f in a.forms.forms %}ação <code>{{ f.action or '—' }}</code> com {{ f.field_count }} campos<br>{% endfor %}</p></div>
+    <div class="card"><h4>Links</h4><div class="big">{{ a.links.internal_count }}</div><p>internos · {{ a.links.external_count }} externos · {{ a.links.nofollow_count }} nofollow</p></div>
+  </div>
+</section>
+
+<section id="conteudo">
+  <h2>Conteúdo extraído</h2>
+  <div class="card" style="margin-bottom:14px">
+    <h4>Hero / primeiro parágrafo</h4>
+    <p>{{ a.design.hero.headline or '—' }}</p>
+    <p class="hint" style="margin-top:6px">{{ a.design.hero.subhead }}</p>
+  </div>
+  <h4>Termos mais frequentes</h4>
+  <div class="chips">{% for kw, n in a.content.keywords %}<span>{{ kw }} ({{ n }})</span>{% endfor %}</div>
+  {% if a.content.lists %}
+  <h4 style="margin-top:16px">Listas (prováveis serviços/produtos)</h4>
+  {% for l in a.content.lists[:6] %}<div class="chips">{% for i in l %}<span>{{ i }}</span>{% endfor %}</div>{% endfor %}
+  {% endif %}
+  {% if a.content.faq %}
+  <h4 style="margin-top:16px">Perguntas frequentes detectadas</h4>
+  {% for item in a.content.faq %}<div class="quote"><b>{{ item.q }}</b></div>{% endfor %}
+  {% endif %}
+  {% if a.pages %}
+  <h4 style="margin-top:16px">Páginas internas visitadas</h4>
+  <table><tr><th>URL</th><th>Tipo</th><th>Título</th><th>Palavras</th></tr>
+  {% for p in a.pages %}<tr><td style="word-break:break-all">{{ p.url }}</td><td>{{ p.role }}</td><td>{{ p.title }}</td><td>{{ p.word_count }}</td></tr>{% endfor %}</table>
+  {% endif %}
+</section>
+
+<section id="tecnologia">
+  <h2>Stack detectada</h2>
+  {% for cat, items in a.tech.by_category.items() %}
+  <div style="margin-bottom:8px"><b style="font-size:13.5px">{{ cat }}</b><div class="chips">{% for i in items %}<span>{{ i }}</span>{% endfor %}</div></div>
+  {% endfor %}
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><h4>Servidor</h4><p>{{ a.tech.server_header or 'não identificado' }}</p></div>
+    <div class="card"><h4>Headers de segurança</h4><p>{{ a.tech.security_score }}% presentes</p>
+      <div class="chips">{% for k, v in a.tech.security_headers.items() %}<span>{{ k }}: {{ '✓' if v else '✗' }}</span>{% endfor %}</div></div>
+  </div>
+</section>
+
+<section id="contatos">
+  <h2>Contatos e localização</h2>
+  <div class="grid">
+    <div class="card"><h4>Telefones</h4><p>{{ a.contacts.phones|join(', ') or '—' }}</p></div>
+    <div class="card"><h4>WhatsApp</h4><p>{{ a.contacts.whatsapp or '—' }}</p></div>
+    <div class="card"><h4>E-mails</h4><p>{{ a.contacts.emails|join(', ') or '—' }}</p></div>
+    <div class="card"><h4>Endereço</h4><p>{{ a.contacts.address or '—' }} {{ a.contacts.cep }}</p></div>
+    <div class="card"><h4>Horário</h4><p>{{ a.contacts.hours or '—' }}</p></div>
+    <div class="card"><h4>Redes</h4><div class="chips">{% for k, v in a.contacts.socials.items() %}<span>{{ k }}</span>{% else %}<span>nenhuma vinculada</span>{% endfor %}</div></div>
+  </div>
+</section>
+
+<section id="proposta">
+  <h2>Proposta de demo</h2>
+  <p class="hint">Uma landing page moderna já montada com o conteúdo e as cores deste site.</p>
+  <p><a href="{{ a.demo_link }}" target="_blank" rel="noopener">→ Abrir a proposta de novo site</a></p>
+  <p><a href="{{ a.briefing_link }}">→ Abrir o briefing em Markdown</a> (conteúdo + estrutura para regenerar o site em qualquer ferramenta)</p>
+</section>
+</div>
+</body>
+</html>
