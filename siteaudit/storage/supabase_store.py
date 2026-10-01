@@ -55,6 +55,24 @@ class SupabaseStorage:
         self.client.table("runs").insert(payload).execute()
         return run_id
 
+    def create_run_with_id(self, run_id: str, config: dict[str, Any]) -> str:
+        payload = {
+            "id": run_id,
+            "source": "local_worker",
+            "config": config,
+            "status": "queued",
+            "progress": "",
+            "leads_found": 0,
+            "errors": [],
+            "created_at": _now(),
+        }
+        self.client.table("runs").upsert(payload, on_conflict="id").execute()
+        return run_id
+
+    def run_exists(self, run_id: str) -> bool:
+        res = self.client.table("runs").select("id").eq("id", run_id).limit(1).execute()
+        return bool(res.data)
+
     def save_leads(self, run_id: str, leads: list[Any]) -> int:
         saved = 0
         for lead in leads:

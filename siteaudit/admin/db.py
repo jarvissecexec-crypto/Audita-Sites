@@ -6,6 +6,7 @@ associados às execuções para que a origem dos resultados não se perca.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -14,7 +15,7 @@ import sqlite3
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 OUTREACH_STAGES = {
     "new", "review", "qualified", "contacted", "replied", "won", "lost", "do_not_contact",
@@ -30,14 +31,22 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def connect(path: str | Path | None = None) -> sqlite3.Connection:
+@contextmanager
+def connect(path: str | Path | None = None) -> Iterator[sqlite3.Connection]:
     target = Path(path) if path else database_path()
     target.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(target), timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 15000")
-    return conn
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def initialize(path: str | Path | None = None) -> None:
@@ -111,6 +120,12 @@ def initialize(path: str | Path | None = None) -> None:
             "UPDATE runs SET status='interrupted', progress='Processo reiniciado' "
             "WHERE status IN ('queued','running')"
         )
+
+
+def run_exists(run_id: str, path: str | Path | None = None) -> bool:
+    with connect(path) as conn:
+        row = conn.execute("SELECT 1 FROM runs WHERE id=? LIMIT 1", (run_id,)).fetchone()
+        return bool(row)
 
 
 def _decode_run(row: sqlite3.Row, leads_found: int | None = None) -> dict[str, Any]:

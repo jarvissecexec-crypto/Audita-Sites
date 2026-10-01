@@ -35,6 +35,7 @@ from .discovery import PROVIDER_HELP, discover
 from .discovery.base import normalize_lead
 from .models import Lead
 from .report.generator import write_outputs
+from .storage import build_runtime_storage, resolve_storage_mode
 from .sync import sync_sqlite_to_supabase
 from .utils.http import Fetcher
 
@@ -90,6 +91,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--file", help="CSV/JSON com leads próprios (use com --providers manual)")
     sp.add_argument("--query", action="append", default=[], help="consulta extra (pode repetir)")
     sp.add_argument("--name", default="", help="nome da pasta do run (padrão: nicho-cidade)")
+    sp.add_argument("--storage", choices=("sqlite", "supabase", "dual"), default=None,
+                    help="persistência do run: sqlite|supabase|dual (padrão: SITEAUDIT_STORAGE ou sqlite)")
     common(sp)
 
     # --------------------------------------------------------- discover
@@ -243,6 +246,29 @@ def save_simple(leads: list[Lead], json_out: str | None, csv_out: str | None) ->
         print(f"CSV salvo em {csv_out}")
 
 
+def persist_run_if_configured(args, leads: list[Lead], errors: list[str]) -> None:
+    mode = resolve_storage_mode(getattr(args, "storage", None))
+    if mode == "sqlite":
+        # SQLite já é usado pelo painel/worker; no modo CLI tradicional não forçamos gravação adicional.
+        return
+    try:
+        storage = build_runtime_storage(mode=mode)
+        config = {
+            "command": args.command,
+            "niche": getattr(args, "niche", ""),
+            "city": getattr(args, "city", ""),
+            "state": getattr(args, "state", ""),
+            "providers": getattr(args, "providers", ""),
+            "internal_only": bool(getattr(args, "internal_only", False)),
+            "errors": errors,
+        }
+        run_id = storage.create_run(config)
+        saved = storage.save_leads(run_id, leads)
+        print(f"Persistência ({mode}) concluída: run={run_id} leads={saved}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ! persistência ({mode}) falhou: {type(exc).__name__}: {exc}")
+
+
 def finish_report(leads: list[Lead], args, niche: str, city: str, state: str,
                   providers: str, errors: list[str]) -> dict:
     out_dir = Path(args.out_dir)
@@ -383,6 +409,7 @@ def main(argv: list[str] | None = None) -> int:
             for err in errors:
                 print(f"  ! {err}")
             audit_many(leads, args, max_audit=args.max_audit)
+            persist_run_if_configured(args, leads, errors)
             finish_report(leads, args, args.niche, args.city, args.state, args.providers, errors)
             return 0
     finally:

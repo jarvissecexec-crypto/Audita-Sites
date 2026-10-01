@@ -25,3 +25,6 @@ class SQLiteStorage:
     def list_leads(self, *, run_id: str | None = None, search: str = "", stage: str = "",
                    limit: int = 500, offset: int = 0) -> list[dict[str, Any]]:
         return db.list_leads(run_id=run_id, search=search, stage=stage, limit=limit, offset=offset, path=self.path)
+
+    def run_exists(self, run_id: str) -> bool:
+        return db.run_exists(run_id, path=self.path)
