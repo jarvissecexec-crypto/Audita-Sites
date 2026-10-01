@@ -123,9 +123,25 @@ def initialize(path: str | Path | None = None) -> None:
 
 
 def run_exists(run_id: str, path: str | Path | None = None) -> bool:
+    """Verifica se um run existe no banco."""
     with connect(path) as conn:
         row = conn.execute("SELECT 1 FROM runs WHERE id=? LIMIT 1", (run_id,)).fetchone()
         return bool(row)
+
+
+def get_lead(lead_id: str, path: str | Path | None = None) -> dict[str, Any] | None:
+    """Retorna um lead específico pelo ID."""
+    with connect(path) as conn:
+        row = conn.execute("SELECT * FROM leads WHERE id=?", (lead_id,)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["has_website"] = bool(item["has_website"])
+        item["audit"] = json.loads(item.pop("audit_json")) if item.get("audit_json") else None
+        item["runs"] = [r[0] for r in conn.execute(
+            "SELECT run_id FROM run_leads WHERE lead_id=? ORDER BY run_id", (lead_id,)
+        ).fetchall()]
+        return item
 
 
 def _decode_run(row: sqlite3.Row, leads_found: int | None = None) -> dict[str, Any]:

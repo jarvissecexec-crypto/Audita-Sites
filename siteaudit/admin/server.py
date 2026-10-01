@@ -13,6 +13,8 @@ from urllib.parse import parse_qs, urlparse
 
 from . import db
 from .worker import execute_search
+from .worker import diagnose_lead as _diagnose_lead
+from .worker import diagnose_run_leads as _diagnose_run_leads
 
 STATIC_DIR = Path(__file__).parent / "static"
 RUN_ID_RE = re.compile(r"^[0-9a-f-]{36}$", re.I)
@@ -209,18 +211,43 @@ class AdminHandler(BaseHTTPRequestHandler):
         if not self._is_local_request(check_origin=True):
             self._send_json(403, {"error": "O painel só aceita acessos locais"})
             return
-        if urlparse(self.path).path != "/api/runs":
-            self._send_json(404, {"error": "Rota não encontrada"})
+        path = urlparse(self.path).path.rstrip("/")
+        parts = path.strip("/").split("/")
+
+        # POST /api/runs  — criar nova busca
+        if path == "/api/runs":
+            try:
+                config = _validate_run(self._read_json())
+                run_id = db.create_run(config)
+                WORKERS.submit(execute_search, run_id)
+                self._send_json(202, {"run_id": run_id, "status": "queued"})
+            except ValueError as exc:
+                self._send_json(400, {"error": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                self._send_json(500, {"error": f"Não foi possível iniciar a busca: {exc}"})
             return
-        try:
-            config = _validate_run(self._read_json())
-            run_id = db.create_run(config)
-            WORKERS.submit(execute_search, run_id)
-            self._send_json(202, {"run_id": run_id, "status": "queued"})
-        except ValueError as exc:
-            self._send_json(400, {"error": str(exc)})
-        except Exception as exc:  # noqa: BLE001
-            self._send_json(500, {"error": f"Não foi possível iniciar a busca: {exc}"})
+
+        # POST /api/leads/<id>/diagnose — diagnosticar UM lead
+        if len(parts) == 4 and parts[:2] == ["api", "leads"] and parts[3] == "diagnose":
+            lead_id = parts[2]
+            try:
+                result = _diagnose_lead(lead_id)
+                self._send_json(200, result)
+            except Exception as exc:  # noqa: BLE001
+                self._send_json(500, {"error": f"Erro no diagnóstico: {exc}"})
+            return
+
+        # POST /api/runs/<id>/diagnose-all — diagnosticar TODOS os leads de uma run
+        if len(parts) == 4 and parts[:2] == ["api", "runs"] and parts[3] == "diagnose-all":
+            run_id = parts[2]
+            try:
+                WORKERS.submit(lambda: _diagnose_run_leads(run_id))
+                self._send_json(202, {"status": "diagnosing", "run_id": run_id})
+            except Exception as exc:  # noqa: BLE001
+                self._send_json(500, {"error": f"Erro ao iniciar diagnósticos: {exc}"})
+            return
+
+        self._send_json(404, {"error": "Rota não encontrada"})
 
     def do_PATCH(self) -> None:  # noqa: N802
         if not self._is_local_request(check_origin=True):

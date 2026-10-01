@@ -1,11 +1,16 @@
 """Helpers de texto, URL e normalização (foco em pt-BR)."""
 
 from __future__ import annotations
-
+import os
 import re
 import unicodedata
 from urllib.parse import urljoin, urlparse
+from pathlib import Path
+from tldextract import TLDExtract
 
+_tld_cache = Path.home() / ".cache" / "tldextract"
+_tld_extract = TLDExtract(cache_dir=str(_tld_cache))
+os.environ.setdefault("TLDEXTRACT_CACHE", "~/.cache/tldextract")
 WORD_RE = re.compile(r"[a-zA-ZÀ-ÿ0-9']+")
 
 STOPWORDS_PT = {
@@ -92,8 +97,7 @@ def top_keywords(text: str, limit: int = 15) -> list[tuple[str, int]]:
 def reg_domain(url: str) -> str:
     """Domínio registrável (ex.: loja.com.br)."""
     try:
-        import tldextract
-        ext = tldextract.extract(url or "")
+        ext = _tld_extract(url or "")
         return ".".join(p for p in (ext.domain, ext.suffix) if p)
     except Exception:
         host = urlparse(url or "").netloc.lower()
